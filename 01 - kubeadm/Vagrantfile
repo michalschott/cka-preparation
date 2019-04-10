@@ -1,0 +1,41 @@
+# Ensure to:
+# vagrant plugin install vagrant-vbguest vagrant-hosts
+#
+# Single Master Node
+# Two Worker Nodes
+
+domain = "k8s.local"
+
+nodes = [
+  { :hostname => 'master',  :ip => '192.168.0.43', :ram => 1024, :cpu => 2 },
+  { :hostname => 'worker1', :ip => '192.168.0.44', :ram => 512,  :cpu => 2 },
+  { :hostname => 'worker2', :ip => '192.168.0.45', :ram => 512,  :cpu => 2 },
+]
+
+Vagrant.configure("2") do |config|
+  config.vbguest.auto_update = true
+
+  nodes.each do |node|
+    config.vm.define node[:hostname] do |nodeconfig|
+      nodeconfig.vm.box = "ubuntu/xenial64"
+      nodeconfig.vm.hostname = node[:hostname] + ".box"
+      nodeconfig.vm.network :private_network, ip: node[:ip]
+
+      memory = node[:ram] ? node[:ram] : 256;
+      cpu = node[:cpu] ? node [:cpu] : 1;
+      nodeconfig.vm.provider :virtualbox do |vb|
+        vb.customize [
+          "modifyvm", :id,
+          "--memory", memory.to_s,
+          "--cpus", cpu.to_s,
+        ]
+      end
+
+      nodeconfig.vm.provision :hosts, :sync_hosts => true
+
+      # I'm just too lazy to configure to puppet/ansible
+      nodeconfig.vm.provision "shell", path: "bootstrap.sh"
+
+    end
+  end
+end
