@@ -53,7 +53,7 @@ EOF
 init_k8s() {
   mkdir -p /vagrant/kubeadm/
   kubeadm config images pull
-  kubeadm init --apiserver-advertise-address=192.168.0.43 --pod-network-cidr=10.244.0.0/16 > /vagrant/kubeadm/kubeadm_init_output
+  kubeadm init --apiserver-advertise-address=192.168.0.43 --pod-network-cidr=10.244.0.0/16 | tee /vagrant/kubeadm/kubeadm_init_output
 
   mkdir -p $HOME/.kube
   cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
